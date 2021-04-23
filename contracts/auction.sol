@@ -86,4 +86,13 @@ contract CarAuction is Auction {
     // the refund process by making the transfer method fail (and therefore throw) forever, meaning
     // that the loop will never get executed completely.
 
+
+    function self_destruct() external only_owner returns (bool) {
+        require(now > auction_end, "ERROR: You can destuct when the auction is running");
+        for (uint i=0; i<bidders.length; i++) {
+            assert(bids[bidders[i]] == 0);
+        }
+        selfdestruct(auction_owner);
+        return true;
+    }
 }
