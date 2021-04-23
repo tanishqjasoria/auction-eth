@@ -22,7 +22,7 @@ contract Auction {
     item public MyItem;
     address[] bidders;
     mapping(address => uint) public bids;
-    auction_State public STATE;
+    auction_state public STATE;
 
     modifier an_ongoing_auction() {
         require(now < auction_end);
@@ -38,9 +38,9 @@ contract Auction {
     function withdraw() public returns (bool) {}
     function cancel_auction() external returns (bool) {}
 
-    event BidEvent( address indexed highestBidder, unint256 highestBid );
-    event WithdrawalEvent(Address withdrawer, uint256 amount);
-    event CanceledEvent(String message, uint256 time);
+    event BidEvent( address indexed highest_bidder, uint256 highest_bid );
+    event WithdrawalEvent(address withdrawer, uint256 amount);
+    event CanceledEvent(string message, uint256 time);
 
 }
 
@@ -51,11 +51,12 @@ contract CarAuction is Auction {
         auction_start = block.timestamp;
         auction_end = auction_start + _bidding_time * 1 hours;
         STATE = auction_state.STARTED;
-        item.Brand = _brand;
-        item.Rnumber = _RNumber;
+        MyItem.Brand = _brand;
+        MyItem.Rnumber = _RNumber;
     }
 
     function bid() public payable an_ongoing_auction returns (bool) {
+        require(STATE = auction_state.STARTED);
         require(bids[msg.sender] + msg.value > highest_bid, "Error: make a higher bid");
         highest_bidder = msg.sender;
         highest_bid = msg.value;
@@ -63,9 +64,9 @@ contract CarAuction is Auction {
         return true;
     }
 
-    function cancel_auction() only_owner an_ongoing_auction returns (bool) {
+    function cancel_auction() external only_owner an_ongoing_auction returns (bool) {
         STATE = auction_state.CANCELLED;
-        CanceledEvent("Auction Cancelled", now);
+        emit CanceledEvent("Auction Cancelled", now);
         return true;
     }
 
@@ -75,7 +76,7 @@ contract CarAuction is Auction {
         uint amount = bids[msg.sender];
         bids[msg.sender] = 0;
         msg.sender.transfer(amount);
-        WithdrawalEvent(msg.sender, amount);
+        emit WithdrawalEvent(msg.sender, amount);
         return true;
     }
 
